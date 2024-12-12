@@ -1,0 +1,62 @@
+<div class="p-4">
+  <!-- Barre de recherche et sélection des catégories -->
+  <div class="flex items-center gap-4 mb-4">
+    <input
+      type="text"
+      placeholder="Rechercher un instrument..."
+      class="p-2 border rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      (input)="onSearchChange($event)"
+    />
+    <select
+      class="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+      (change)="onCategoryChange($event)"
+    >
+      <option *ngFor="let category of categories" [value]="category.id">
+        {{ category.titre }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Afficher le nombre d'instruments -->
+  <div class="mb-4 text-lg font-semibold text-gray-700">
+    {{ totalInstruments }} résultat(s) trouvé(s)
+  </div>
+
+  <!-- Message si aucun résultat n'est trouvé -->
+  <div *ngIf="messageAucunInstrument" class="flex flex-col items-center mt-12 text-center">
+    <div class="flex justify-center items-center mb-6">
+      <img
+        src="assets/images/no-result.png"
+        alt="No results found"
+        class="w-24 h-24"
+      />
+    </div>
+    <h3 class="text-xl font-semibold text-gray-600">Aucun résultat trouvé !</h3>
+    <p class="text-gray-500">Essayez avec d'autres mots-clés.</p>
+  </div>
+
+  <!-- Liste des instruments -->
+  <div
+    *ngIf="!messageAucunInstrument && (instruments$ | async) as instruments"
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+  >
+    <div *ngFor="let instrument of instruments" class="border rounded p-4 shadow">
+      <img
+        [src]="instrument.image"
+        alt="{{ instrument.nom }}"
+        class="w-full h-48 object-cover mb-3 rounded"
+      />
+      <h3 class="font-bold text-lg">{{ instrument.nom }}</h3>
+      <p class="text-gray-600">{{ instrument.description }}</p>
+      <p class="font-bold text-blue-600 mt-2">
+        {{ instrument.prix | currency: 'EUR' }}
+      </p>
+      <button
+        (click)="addToCart(instrument)"
+        class="bg-blue-500 text-white p-2 rounded mt-3 w-full hover:bg-blue-600"
+      >
+      Ajouter au panier{{ getItemCount(instrument.id || 0) > 0 ? ' (' + getItemCount(instrument.id || 0) + ')' : '' }}
+      </button>
+    </div>
+  </div>
+</div>

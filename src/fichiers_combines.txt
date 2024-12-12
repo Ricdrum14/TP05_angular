@@ -1,0 +1,632 @@
+===== ./assets/mock/instrument.json =====
+[
+    {
+      "id": 1,
+      "nom": "Saxophone",
+      "description": "Instrument à vent",
+      "prix": 1200,
+      "image": "/assets/images/saxophone.jpeg",
+      "categorieId": 1
+    },
+    {
+      "id": 2,
+      "nom": "Flûte traversière",
+      "description": "Instrument à vent",
+      "prix": 500,
+      "image": "/assets/images/flute-traversiere.jpg",
+      "categorieId": 1
+    },
+    {
+      "id": 3,
+      "nom": "Flûte à bec",
+      "description": "Instrument à vent",
+      "prix": 150,
+      "image": "/assets/images/flute-a-bec.jpg",
+      "categorieId": 1
+    },
+    {
+      "id": 4,
+      "nom": "Trompette",
+      "description": "Instrument à vent",
+      "prix": 800,
+      "image": "/assets/images/trompette.jpg",
+      "categorieId": 1
+    },
+    {
+      "id": 5,
+      "nom": "Guitare acoustique",
+      "description": "Instrument à cordes",
+      "prix": 600,
+      "image": "/assets/images/guitare-acoustique.jpg",
+      "categorieId": 2
+    },
+    {
+      "id": 6,
+      "nom": "Guitare électrique",
+      "description": "Instrument à cordes",
+      "prix": 1000,
+      "image": "/assets/images/guitare-electrique.jpg",
+      "categorieId": 2
+    },
+    {
+      "id": 7,
+      "nom": "Violoncelle",
+      "description": "Instrument à cordes",
+      "prix": 3000,
+      "image": "/assets/images/violoncelle.jpeg",
+      "categorieId": 2
+    },
+    {
+      "id": 8,
+      "nom": "Violon",
+      "description": "Instrument à cordes",
+      "prix": 1200,
+      "image": "/assets/images/violon.jpg",
+      "categorieId": 2
+    },
+    {
+      "id": 9,
+      "nom": "Harpe",
+      "description": "Instrument à cordes",
+      "prix": 4000,
+      "image": "/assets/images/harpe.jpg",
+      "categorieId": 2
+    },
+    {
+      "id": 10,
+      "nom": "Tambourin",
+      "description": "Instrument à percussion",
+      "prix": 50,
+      "image": "/assets/images/tambourine.jpeg",
+      "categorieId": 3
+    },
+    {
+      "id": 11,
+      "nom": "Caisse claire",
+      "description": "Instrument à percussion",
+      "prix": 400,
+      "image": "/assets/images/caisse-claire.jpg",
+      "categorieId": 3
+    },
+    {
+      "id": 12,
+      "nom": "Batterie",
+      "description": "Instrument à percussion",
+      "prix": 2000,
+      "image": "/assets/images/batterie.jpeg",
+      "categorieId": 3
+    },
+    {
+      "id": 13,
+      "nom": "Xylophone",
+      "description": "Instrument à percussion",
+      "prix": 600,
+      "image": "/assets/images/xylophone.jpg",
+      "categorieId": 3
+    },
+    {
+      "id": 14,
+      "nom": "Congas",
+      "description": "Instrument à percussion",
+      "prix": 800,
+      "image": "/assets/images/conga.jpeg",
+      "categorieId": 3
+    },
+    {
+      "id": 15,
+      "nom": "Maracas",
+      "description": "Instrument à percussion",
+      "prix": 30,
+      "image": "/assets/images/maracas.jpg",
+      "categorieId": 3
+    },
+    {
+      "id": 16,
+      "nom": "Basse",
+      "description": "Instrument à cordes",
+      "prix": 900,
+      "image": "/assets/images/basse.jpeg",
+      "categorieId": 2
+    },
+    {
+      "id": 17,
+      "nom": "Piano",
+      "description": "Instrument à cordes",
+      "prix": 5000,
+      "image": "/assets/images/piano.jpg",
+      "categorieId": 2
+    }
+  ]
+  
+
+===== ./assets/mock/categorie.json =====
+[
+    { "id": 0, "titre": "Toutes les catégories" },
+    { "id": 1, "titre": "Instruments à vent" },
+    { "id": 2, "titre": "Instruments à cordes" },
+    { "id": 3, "titre": "Instruments à percussion" }
+  ]
+
+===== ./shared/environnements/environnement.ts =====
+export const environnement = {
+    production: false,
+    backendInstrument : '/assets/mock/instrument.json'
+  };
+
+===== ./shared/states/cart.state.ts =====
+import { State, Action, StateContext, Selector } from '@ngxs/store';
+import { Injectable } from '@angular/core';
+
+// Actions
+export class AddToCart {
+  static readonly type = '[Cart] Add';
+  constructor(public payload: any) {}
+}
+
+export class RemoveFromCart {
+  static readonly type = '[Cart] Remove';
+  constructor(public id: number) {}
+}
+
+// Modèle du panier
+export interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface CartStateModel {
+  items: CartItem[];
+}
+
+@State<CartStateModel>({
+  name: 'cart',
+  defaults: {
+    items: []
+  }
+})
+@Injectable()
+export class CartState {
+  @Selector()
+  static getCartItems(state: CartStateModel) {
+    return state.items;
+  }
+
+  @Selector()
+  static getTotalItems(state: CartStateModel) {
+    return state.items.reduce((total, item) => total + item.quantity, 0);
+  }
+
+  @Selector()
+  static getTotalPrice(state: CartStateModel) {
+    return state.items.reduce((total, item) => total + item.price * item.quantity, 0);
+  }
+
+  @Action(AddToCart)
+  add({ getState, patchState }: StateContext<CartStateModel>, { payload }: AddToCart) {
+    const state = getState();
+    const existingItem = state.items.find((item) => item.id === payload.id);
+
+    if (existingItem) {
+      patchState({
+        items: state.items.map((item) =>
+          item.id === payload.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      });
+    } else {
+      patchState({
+        items: [...state.items, { ...payload, quantity: 1 }]
+      });
+    }
+  }
+
+  @Action(RemoveFromCart)
+  remove({ getState, patchState }: StateContext<CartStateModel>, { id }: RemoveFromCart) {
+    const state = getState();
+    patchState({
+      items: state.items.filter((item) => item.id !== id)
+    });
+  }
+}
+
+
+===== ./shared/models/catogories.constants.ts =====
+export const CATEGORIES = [
+    { id: 0, titre: "Toutes les catégories" },
+    { id: 1, titre: "Instruments à vent" },
+    { id: 2, titre: "Instruments à cordes" },
+    { id: 3, titre: "Instruments à percussion" }
+  ];
+  
+
+===== ./shared/models/instrument.ts =====
+export class Instruments {
+    id?: number;
+    nom?: string;
+    description?: string;
+    prix?: number;
+    image?: string;
+    categorieId?: number;
+}
+
+===== ./index.html =====
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TP05ANNISRicardo</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+
+
+===== ./app/app.component.html =====
+<div class="container mx-auto p-4">
+  <router-outlet></router-outlet>
+</div>
+
+
+===== ./app/panier/panier.component.spec.ts =====
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { PanierComponent } from './panier.component';
+
+describe('PanierComponent', () => {
+  let component: PanierComponent;
+  let fixture: ComponentFixture<PanierComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [PanierComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(PanierComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+===== ./app/panier/panier.component.ts =====
+import { Component } from '@angular/core';
+import { Store } from '@ngxs/store';
+import { Observable } from 'rxjs';
+import { CartState } from '../../shared/states/cart.state';
+import { RemoveFromCart } from '../../shared/states/cart.state';
+
+@Component({
+  selector: 'app-panier',
+  standalone: true,
+  templateUrl: './panier.component.html',
+  styleUrls: ['./panier.component.css'],
+})
+export class PanierComponent {
+  cartItems$: Observable<any[]> = this.store.select(CartState.getCartItems);
+  totalPrice$: Observable<number> = this.store.select(CartState.getTotalPrice);
+
+  constructor(private store: Store) {}
+
+  removeFromCart(id: number): void {
+    this.store.dispatch(new RemoveFromCart(id));
+  }
+}
+
+
+===== ./app/panier/panier.component.html =====
+<div class="p-6">
+    <h2 class="text-2xl font-bold mb-4">Panier ({{ (cartItems$ | async)?.length || 0 }} produit(s))</h2>
+    <div *ngIf="(cartItems$ | async) as cartItems; else emptyCart">
+      <div *ngFor="let item of cartItems" class="flex items-center justify-between p-4 border-b">
+        <div>
+          <h3 class="font-semibold">{{ item.name }}</h3>
+          <p class="text-gray-600">{{ item.price | currency: 'EUR' }} x {{ item.quantity }}</p>
+        </div>
+        <button
+          (click)="removeFromCart(item.id)"
+          class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+        >
+          Retirer
+        </button>
+      </div>
+      <div class="mt-4 text-right">
+        <p class="text-xl font-bold">Total : {{ (totalPrice$ | async) | currency: 'EUR' }}</p>
+      </div>
+    </div>
+    <ng-template #emptyCart>
+      <p class="text-center text-gray-500">Votre panier est vide.</p>
+    </ng-template>
+  </div>
+  
+
+===== ./app/app.component.ts =====
+import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterModule], // Import du module de routage
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {}
+
+
+===== ./app/app.config.ts =====
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+
+===== ./app/api.service.ts =====
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Instruments } from '../shared/models/instrument';
+import { environnement } from '../shared/environnements/environnement';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ApiService {
+  constructor(private http: HttpClient) {}
+
+  // Obtenez les instruments
+  getInstruments(): Observable<Instruments[]> {
+    return this.http.get<Instruments[]>(environnement.backendInstrument);
+  }
+}
+
+
+===== ./app/app.component.spec.ts =====
+import { TestBed } from '@angular/core/testing';
+import { AppComponent } from './app.component';
+import { RouterModule } from '@angular/router';
+
+describe('AppComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterModule.forRoot([]), AppComponent],
+    }).compileComponents();
+  });
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+});
+
+
+===== ./app/app.module.ts =====
+import { provideRouter } from '@angular/router';
+import { routes } from './app.routes';
+import { ApplicationConfig } from '@angular/core';
+
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideRouter(routes)]
+};
+
+
+===== ./app/catalog/catalog.component.ts =====
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http'; // Importer HttpClientModule
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ApiService } from '../api.service';
+import { Instruments } from '../../shared/models/instrument';
+
+@Component({
+  selector: 'app-catalog',
+  standalone: true,
+  imports: [CommonModule, FormsModule, HttpClientModule], // Ajouter HttpClientModule ici
+  providers: [ApiService], // Ajouter ApiService
+  templateUrl: './catalog.component.html',
+  styleUrls: ['./catalog.component.css']
+})
+export class CatalogComponent implements OnInit {
+  private searchTerm$ = new BehaviorSubject<string>('');
+  private selectedCategory$ = new BehaviorSubject<number>(0);
+
+  instruments$!: Observable<Instruments[]>;
+  categories = [
+    { id: 0, titre: 'Toutes les catégories' },
+    { id: 1, titre: 'Instruments à vent' },
+    { id: 2, titre: 'Instruments à cordes' },
+    { id: 3, titre: 'Instruments à percussion' }
+  ];
+  messageAucunInstrument = '';
+  totalInstruments = 0; // Propriété pour le nombre total d'instruments
+
+
+  constructor(private apiService: ApiService) {}
+
+  ngOnInit(): void {
+    this.instruments$ = combineLatest([
+      this.apiService.getInstruments(),
+      this.searchTerm$,
+      this.selectedCategory$
+    ]).pipe(
+      map(([instruments, searchTerm, selectedCategory]) => {
+        const filteredInstruments = instruments.filter((instrument) => {
+          const matchesCategory =
+            selectedCategory === 0 || instrument.categorieId === selectedCategory;
+          const matchesSearch = instrument.nom
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase());
+          return matchesCategory && matchesSearch;
+        });
+
+        // Mettre à jour le nombre total d'instruments
+        this.totalInstruments = filteredInstruments.length;
+
+        this.messageAucunInstrument =
+          filteredInstruments.length === 0 ? 'Aucun instrument trouvé' : '';
+
+        return filteredInstruments;
+      })
+    );
+  }
+
+  // Méthode pour gérer l'événement de recherche
+  onSearchChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchTerm$.next(input.value);
+  }
+
+  // Méthode pour gérer le changement de catégorie
+  onCategoryChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.selectedCategory$.next(Number(select.value));
+  }
+}
+
+
+===== ./app/catalog/catalog.component.html =====
+<div class="p-4">
+  <!-- Barre de recherche et sélection des catégories -->
+  <div class="flex items-center gap-4 mb-4">
+    <input
+      type="text"
+      placeholder="Rechercher un instrument..."
+      class="p-2 border rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      (input)="onSearchChange($event)"
+    />
+    <select
+      class="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+      (change)="onCategoryChange($event)"
+    >
+      <option *ngFor="let category of categories" [value]="category.id">
+        {{ category.titre }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Afficher le nombre d'instruments -->
+  <div class="mb-4 text-lg font-semibold text-gray-700">
+    {{ totalInstruments }} résultat(s) trouvé(s)
+  </div>
+
+  <!-- Message si aucun résultat n'est trouvé -->
+  <div *ngIf="messageAucunInstrument" class="flex flex-col items-center mt-12 text-center">
+    <div class="flex justify-center items-center mb-6">
+      <img
+        src="assets/images/no-result.png"
+        alt="No results found"
+        class="w-24 h-24"
+      />
+    </div>
+    <h3 class="text-xl font-semibold text-gray-600">Aucun résultat trouvé !</h3>
+    <p class="text-gray-500">Essayez avec d'autres mots-clés.</p>
+  </div>
+
+  <!-- Liste des instruments -->
+  <div
+    *ngIf="!messageAucunInstrument && (instruments$ | async) as instruments"
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+  >
+    <div *ngFor="let instrument of instruments" class="border rounded p-4 shadow">
+      <img
+        [src]="instrument.image"
+        alt="{{ instrument.nom }}"
+        class="w-full h-48 object-cover mb-3 rounded"
+      />
+      <h3 class="font-bold text-lg">{{ instrument.nom }}</h3>
+      <p class="text-gray-600">{{ instrument.description }}</p>
+      <p class="font-bold text-blue-600 mt-2">
+        {{ instrument.prix | currency: 'EUR' }}
+      </p>
+      <button class="bg-blue-500 text-white p-2 rounded mt-3 w-full hover:bg-blue-600">
+        Ajouter au panier
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+===== ./app/catalog/catalog.component.spec.ts =====
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { CatalogComponent } from './catalog.component';
+
+describe('CatalogComponent', () => {
+  let component: CatalogComponent;
+  let fixture: ComponentFixture<CatalogComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [CatalogComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(CatalogComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+===== ./app/app.routes.ts =====
+import { Routes } from '@angular/router';
+import { CatalogComponent } from './catalog/catalog.component';
+import { PanierComponent } from './panier/panier.component';
+
+export const routes: Routes = [
+  { path: '', component: CatalogComponent },
+  { path: 'panier', component: PanierComponent },
+  { path: '**', redirectTo: '' }
+];
+
+
+===== ./main.ts =====
+import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app/app.component';
+import { provideStore } from '@ngxs/store';
+import { CartState } from './shared/states/cart.state';
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideStore([CartState])
+  ]
+}).catch((err) => console.error(err));
+
+

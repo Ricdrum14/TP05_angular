@@ -1,0 +1,27 @@
+<div class="container mx-auto p-4">
+  <!-- En-tête -->
+  <header class="flex justify-between items-center mb-4">
+    <!-- Logo à gauche -->
+    <div class="flex items-center">
+      <img src="assets/images/logo.jpg" alt="Logo" class="h-10 mr-2">
+      <span class="text-lg font-bold">Shopify Instruments</span>
+    </div>
+
+    <!-- Titre au centre -->
+    <h1 class="text-xl font-bold text-center flex-1">Catalogue d'instruments</h1>
+
+    <!-- Icône du panier à droite -->
+    <a routerLink="/panier" class="relative">
+      <span class="text-2xl">🛒</span>
+      <span
+        *ngIf="(totalItems$ | async) as totalItems"
+        class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2"
+      >
+        {{ totalItems }}
+      </span>
+    </a>
+  </header>
+
+  <!-- Contenu principal -->
+  <router-outlet></router-outlet>
+</div>
